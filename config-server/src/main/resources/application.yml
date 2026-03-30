@@ -8,9 +8,9 @@ spring:
     config:
       server:
         git:
-          uri: Url
-          username: Your Username
-          password: Your Password
+          uri: url
+          username: username
+          password: Password
           default-label: main
           clone-on-start: true
           force-pull: true
