@@ -1,12 +1,9 @@
 package com.finflow.auth_service.dto;
 
-import com.finflow.auth_service.entity.Role;
-
 public class SignupRequest {
     private String name;
     private String email;
     private String password;
-    private Role role;
 
     public String getName() {
         return name;
@@ -30,13 +27,5 @@ public class SignupRequest {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
     }
 }

@@ -7,15 +7,27 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-@Component
 public class HeaderAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final List<String> PUBLIC_PATH_PREFIXES = List.of(
+            "/actuator/",
+            "/v3/api-docs",
+            "/swagger-ui"
+    );
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return "OPTIONS".equalsIgnoreCase(request.getMethod())
+                || PUBLIC_PATH_PREFIXES.stream().anyMatch(path::startsWith)
+                || path.endsWith("/swagger-ui.html");
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

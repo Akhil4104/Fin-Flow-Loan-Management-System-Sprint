@@ -1,42 +1,8 @@
 server:
-  port: 8083
+  port: ${SERVER_PORT:8083}
 
 spring:
   application:
-    name: document_service
-
-  datasource:
-    url: jdbc:mysql://localhost:3306/document_db?useSSL=false&serverTimezone=UTC
-    username: root
-    password: root
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-    database-platform: org.hibernate.dialect.MySQLDialect
-
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
-file:
-  upload-dir: uploads/
-
-jwt:
-  secret: finflowsecretkeyforhs256algorithm
-  expiration: 3600000
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-
-springdoc:
-  api-docs:
-    path: /documents/v3/api-docs
-  swagger-ui:
-    path: /documents/swagger-ui.html
+    name: document-service
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}

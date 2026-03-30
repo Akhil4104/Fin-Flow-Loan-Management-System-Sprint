@@ -4,6 +4,11 @@ public class LoginRequest {
     private String email;
     private String password;
 
+    public LoginRequest(String mail, String password123) {
+        this.email=mail;
+        this.password=password123;
+    }
+
     public String getEmail() {
         return email;
     }

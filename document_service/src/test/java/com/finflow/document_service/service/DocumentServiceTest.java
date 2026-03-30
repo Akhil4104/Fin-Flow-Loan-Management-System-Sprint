@@ -1,8 +1,10 @@
 package com.finflow.document_service.service;
 
+import com.finflow.document_service.client.ApplicationClient;
 import com.finflow.document_service.dto.DocumentResponse;
 import com.finflow.document_service.entity.Document;
 import com.finflow.document_service.repository.DocumentRepository;
+import com.finflow.document_service.service.impl.DocumentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +23,9 @@ class DocumentServiceTest {
     @Mock
     private DocumentRepository repository;
 
+    @Mock
+    private ApplicationClient applicationClient;
+
     @InjectMocks
     private DocumentServiceImpl documentService;
 
@@ -28,7 +33,7 @@ class DocumentServiceTest {
 
     @BeforeEach
     void setUp() {
-        testDoc = new Document(1L, "test.pdf", "application/pdf", "/tmp/test.pdf", "PENDING");
+        testDoc = new Document(1L, 10L, "test.pdf", "application/pdf", "/tmp/test.pdf", "PENDING");
         testDoc.setId(10L);
     }
 
@@ -64,7 +69,7 @@ class DocumentServiceTest {
         when(repository.findById(10L)).thenReturn(Optional.of(testDoc));
 
         // Act
-        DocumentResponse result = documentService.getById(10L);
+        DocumentResponse result = documentService.getById(10L,10L,"APPLICANT");
 
         // Assert
         assertThat(result.getFileName()).isEqualTo("test.pdf");

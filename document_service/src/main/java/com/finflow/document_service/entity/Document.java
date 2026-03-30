@@ -13,6 +13,8 @@ public class Document {
 
     private Long applicationId;
 
+    private Long ownerUserId;
+
     private String fileName;
 
     private String filePath;
@@ -25,13 +27,18 @@ public class Document {
 
     public Document() {}
 
-    public Document(Long applicationId, String fileName, String fileType, String filePath,String status) {
+    public Document(Long applicationId, Long ownerUserId, String fileName, String fileType, String filePath,String status) {
         this.applicationId = applicationId;
+        this.ownerUserId = ownerUserId;
         this.fileName = fileName;
         this.fileType = fileType;
         this.filePath = filePath;
         this.uploadedAt = LocalDateTime.now();
         this.status=status;
+    }
+
+    public Document(long l, String s, String contentType, String s1, String pending) {
+
     }
 
     public Long getId() {
@@ -48,6 +55,14 @@ public class Document {
 
     public void setApplicationId(Long applicationId) {
         this.applicationId = applicationId;
+    }
+
+    public Long getOwnerUserId() {
+        return ownerUserId;
+    }
+
+    public void setOwnerUserId(Long ownerUserId) {
+        this.ownerUserId = ownerUserId;
     }
 
     public String getFileName() {

@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.util.List;
 
 public interface DocumentService {
-    DocumentResponse upload(Long applicationId, MultipartFile file) throws IOException;
-    DocumentResponse getById(Long id);
-    Resource downloadFile(Long id) throws IOException;
-    DocumentResponse replace(Long id, MultipartFile file) throws IOException;
-    void delete(Long id);
+    DocumentResponse upload(Long applicationId, Long userId, MultipartFile file) throws IOException;
+    DocumentResponse getById(Long id, Long userId, String role);
+    Resource downloadFile(Long id, Long userId, String role) throws IOException;
+    DocumentResponse replace(Long id, Long userId, String role, MultipartFile file) throws IOException;
+    void delete(Long id, Long userId, String role);
     DocumentResponse verify(Long id);
     DocumentResponse reject(Long id);
-    List<DocumentResponse> getByApplication(Long applicationId);
+    List<DocumentResponse> getByApplication(Long applicationId, Long userId, String role);
 }

@@ -28,6 +28,10 @@ public class User {
         this.role = role;
     }
 
+    public User(String testUser, String mail, String encodedPassword) {
+
+    }
+
     public Long getId() {
         return id;
     }

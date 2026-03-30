@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="admin_service" />
+        <module name="config-server" />
+        <module name="auth_service" />
+        <module name="application_service" />
+        <module name="document_service" />
+        <module name="api_gateway" />
+        <module name="eureka-server" />
+        <module name="notification-service" />
+      </profile>
+    </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="admin_service" options="-parameters" />
+      <module name="api_gateway" options="-parameters" />
+      <module name="application_service" options="-parameters" />
+      <module name="auth_service" options="-parameters" />
+      <module name="config-server" options="-parameters" />
+      <module name="document_service" options="-parameters" />
+      <module name="eureka-server" options="-parameters" />
+      <module name="notification-service" options="-parameters" />
+    </option>
+  </component>
+</project>

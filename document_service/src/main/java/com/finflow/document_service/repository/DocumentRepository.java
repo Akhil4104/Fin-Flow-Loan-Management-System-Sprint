@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface DocumentRepository extends JpaRepository<Document,Long> {
     List<Document>findByApplicationId(Long applicationId);
+    List<Document>findByApplicationIdAndOwnerUserId(Long applicationId, Long ownerUserId);
 }

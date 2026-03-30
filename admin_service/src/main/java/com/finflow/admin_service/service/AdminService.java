@@ -2,33 +2,23 @@ package com.finflow.admin_service.service;
 
 import com.finflow.admin_service.dto.DecisionRequest;
 import com.finflow.admin_service.dto.DecisionResponse;
-import com.finflow.admin_service.entity.Decision;
-import com.finflow.admin_service.repository.DecisionRepository;
-import org.springframework.stereotype.Service;
+import com.finflow.admin_service.entity.AuditLog;
+import java.util.List;
+import java.util.Map;
 
-@Service
-public class AdminService {
-
-    private final DecisionRepository repository;
-
-    public AdminService(DecisionRepository repository){
-        this.repository=repository;
-    }
-
-    public DecisionResponse makeDecision(Long applicationId,DecisionRequest request){
-        Decision decision=new Decision(
-                applicationId,
-                request.getDecision(),
-                request.getRemarks()
-        );
-        repository.save(decision);
-
-        DecisionResponse res = new DecisionResponse();
-        res.setApplicationId(applicationId);
-        res.setDecision(request.getDecision());
-        res.setRemarks(request.getRemarks());
-        res.setDecidedAt(decision.getDecidedAt());
-
-        return res;
-    }
+public interface AdminService {
+    DecisionResponse makeDecision(Long adminId, Long applicationId, DecisionRequest request);
+    List<Object> getAllApplications(Long userId, String status);
+    Object getApplicationById(Long id);
+    Object assignApplication(Long adminId, Long id);
+    Object reviewApplication(Long adminId, Long id);
+    Object closeApplication(Long adminId, Long id);
+    Object verifyDocument(Long adminId, Long docId);
+    Object rejectDocument(Long adminId, Long docId);
+    List<Object> getAllUsers();
+    Object getUserById(Long id);
+    Object updateUser(Long adminId, Long id, Object request);
+    void deleteUser(Long adminId, Long id);
+    Map<String, Long> getDashboardStats();
+    List<AuditLog> getAuditLogs();
 }

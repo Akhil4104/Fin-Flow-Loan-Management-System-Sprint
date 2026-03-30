@@ -7,7 +7,12 @@ import java.time.LocalDateTime;
 
 public class ApplicationResponse {
     private Long id;
+    private Long userId;
     private Double amount;
+    private String loanType;
+    private Integer tenure;
+    private Double income;
+    private String employmentType;
     private ApplicationStatus status;
     private LocalDateTime createdAt;
 
@@ -17,6 +22,14 @@ public class ApplicationResponse {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public Double getAmount() {
@@ -41,5 +54,37 @@ public class ApplicationResponse {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getLoanType() {
+        return loanType;
+    }
+
+    public void setLoanType(String loanType) {
+        this.loanType = loanType;
+    }
+
+    public Integer getTenure() {
+        return tenure;
+    }
+
+    public void setTenure(Integer tenure) {
+        this.tenure = tenure;
+    }
+
+    public Double getIncome() {
+        return income;
+    }
+
+    public void setIncome(Double income) {
+        this.income = income;
+    }
+
+    public String getEmploymentType() {
+        return employmentType;
+    }
+
+    public void setEmploymentType(String employmentType) {
+        this.employmentType = employmentType;
     }
 }

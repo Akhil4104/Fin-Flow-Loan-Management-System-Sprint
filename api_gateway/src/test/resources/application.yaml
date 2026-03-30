@@ -1,0 +1,15 @@
+eureka:
+  client:
+    enabled: false
+
+spring:
+  cloud:
+    discovery:
+      enabled: false
+
+management:
+  tracing:
+    enabled: false
+
+jwt:
+  secret: finflowsecretkeyforhs256algorithm

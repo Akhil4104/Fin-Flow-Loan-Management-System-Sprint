@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,48 +27,67 @@ public class DocumentController {
     public DocumentController(DocumentService service){
         this.service=service;
     }
-    @PostMapping("/upload")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    @Operation(summary = "Upload Document", description = "Upload a document related to an application. Users and Admins only.")
-    public DocumentResponse upload(@RequestParam Long applicationId, @RequestParam MultipartFile file)throws IOException{
-        return service.upload(applicationId,file);
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('APPLICANT')")
+    @Operation(summary = "Upload Document", description = "Upload a document related to an application. Applicants only.")
+    public DocumentResponse upload(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestParam Long applicationId,
+            @RequestPart("file") MultipartFile file)throws IOException{
+        return service.upload(applicationId, userId, file);
     }
     @GetMapping("/{applicationId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    @Operation(summary = "Get Documents by Application", description = "Retrieve all documents for a given application ID. Users and Admins only.")
-    public List<DocumentResponse>getDocs(@PathVariable Long applicationId){
-        return service.getByApplication(applicationId);
+    @PreAuthorize("hasAnyRole('APPLICANT', 'ADMIN')")
+    @Operation(summary = "Get Documents by Application", description = "Retrieve all documents for a given application ID. Applicants and Admins only.")
+    public List<DocumentResponse>getDocs(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Role") String role,
+            @PathVariable Long applicationId){
+        return service.getByApplication(applicationId, userId, role);
     }
 
     @GetMapping("/file/{id}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('APPLICANT', 'ADMIN')")
     @Operation(summary = "Get Document Metadata", description = "Fetch metadata details for a specific document by its ID.")
-    public DocumentResponse getDocById(@PathVariable Long id) {
-        return service.getById(id);
+    public DocumentResponse getDocById(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Role") String role,
+            @PathVariable Long id) {
+        return service.getById(id, userId, role);
     }
 
     @GetMapping("/{id}/download")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('APPLICANT', 'ADMIN')")
     @Operation(summary = "Download Document", description = "Download the actual file content for a given document.")
-    public ResponseEntity<Resource> downloadFile(@PathVariable Long id) throws IOException {
-        Resource resource = service.downloadFile(id);
+    public ResponseEntity<Resource> downloadFile(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Role") String role,
+            @PathVariable Long id) throws IOException {
+        Resource resource = service.downloadFile(id, userId, role);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
     }
 
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('APPLICANT', 'ADMIN')")
     @Operation(summary = "Replace Document", description = "Replace an existing document file with a new one.")
-    public DocumentResponse replaceDoc(@PathVariable Long id, @RequestParam MultipartFile file) throws IOException {
-        return service.replace(id, file);
+    public DocumentResponse replaceDoc(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Role") String role,
+            @PathVariable Long id,
+            @RequestPart("file") MultipartFile file) throws IOException {
+        return service.replace(id, userId, role, file);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('APPLICANT', 'ADMIN')")
     @Operation(summary = "Delete Document", description = "Delete a document from the system.")
-    public ResponseEntity<Void> deleteDoc(@PathVariable Long id) {
-        service.delete(id);
+    public ResponseEntity<Void> deleteDoc(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Role") String role,
+            @PathVariable Long id) {
+        service.delete(id, userId, role);
         return ResponseEntity.noContent().build();
     }
 

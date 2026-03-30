@@ -1,0 +1,329 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: finflow-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -proot --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - finflow-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: finflow-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - finflow-network
+
+  zipkin:
+    image: openzipkin/zipkin:3
+    container_name: finflow-zipkin
+    restart: unless-stopped
+    ports:
+      - "9411:9411"
+    networks:
+      - finflow-network
+
+  config-server:
+    build:
+      context: ./config-server
+      dockerfile: Dockerfile
+    container_name: finflow-config-server
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8888
+    ports:
+      - "8888:8888"
+    networks:
+      - finflow-network
+
+  prometheus:
+    image: prom/prometheus:v3.3.1
+    container_name: finflow-prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      auth-service:
+        condition: service_started
+      application-service:
+        condition: service_started
+      document-service:
+        condition: service_started
+      admin-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      api-gateway:
+        condition: service_started
+    networks:
+      - finflow-network
+
+  grafana:
+    image: grafana/grafana:11.6.0
+    container_name: finflow-grafana
+    restart: unless-stopped
+    depends_on:
+      prometheus:
+        condition: service_started
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - finflow-network
+
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    container_name: finflow-eureka-server
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8761
+    ports:
+      - "8761:8761"
+    networks:
+      - finflow-network
+
+  auth-service:
+    build:
+      context: ./auth_service
+      dockerfile: Dockerfile
+    container_name: finflow-auth-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+      zipkin:
+        condition: service_started
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/auth_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: auth-service
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
+      JWT_SECRET: finflowsecretkeyforhs256algorithm
+      JWT_EXPIRATION: 3600000
+    ports:
+      - "8081:8081"
+    networks:
+      - finflow-network
+
+  application-service:
+    build:
+      context: ./application_service
+      dockerfile: Dockerfile
+    container_name: finflow-application-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+      zipkin:
+        condition: service_started
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/application_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: application-service
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
+      JWT_SECRET: finflowsecretkeyforhs256algorithm
+      JWT_EXPIRATION: 3600000
+    ports:
+      - "8082:8082"
+    networks:
+      - finflow-network
+
+  document-service:
+    build:
+      context: ./document_service
+      dockerfile: Dockerfile
+    container_name: finflow-document-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+      zipkin:
+        condition: service_started
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      SERVER_PORT: 8083
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/document_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      FILE_UPLOAD_DIR: /app/uploads
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: document-service
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
+      JWT_SECRET: finflowsecretkeyforhs256algorithm
+      JWT_EXPIRATION: 3600000
+    ports:
+      - "8083:8083"
+    volumes:
+      - uploads-data:/app/uploads
+    networks:
+      - finflow-network
+
+  admin-service:
+    build:
+      context: ./admin_service
+      dockerfile: Dockerfile
+    container_name: finflow-admin-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+      zipkin:
+        condition: service_started
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      SERVER_PORT: 8084
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/admin_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: admin-service
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
+      JWT_SECRET: finflowsecretkeyforhs256algorithm
+      JWT_EXPIRATION: 3600000
+    ports:
+      - "8084:8084"
+    networks:
+      - finflow-network
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: finflow-notification-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+      zipkin:
+        condition: service_started
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      SERVER_PORT: 8085
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/notification_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: notification-service
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
+      JWT_SECRET: finflowsecretkeyforhs256algorithm
+    ports:
+      - "8085:8085"
+    networks:
+      - finflow-network
+
+  api-gateway:
+    build:
+      context: ./api_gateway
+      dockerfile: Dockerfile
+    container_name: finflow-api-gateway
+    restart: unless-stopped
+    depends_on:
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      application-service:
+        condition: service_started
+      document-service:
+        condition: service_started
+      admin-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      zipkin:
+        condition: service_started
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      SERVER_PORT: 8080
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
+      JWT_SECRET: finflowsecretkeyforhs256algorithm
+    ports:
+      - "8080:8080"
+    networks:
+      - finflow-network
+
+networks:
+  finflow-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  rabbitmq-data:
+  uploads-data:
+  grafana-data:

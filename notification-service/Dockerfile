@@ -1,9 +1,16 @@
-FROM public.ecr.aws/amazoncorretto/amazoncorretto:21
+FROM maven:3.9.9-eclipse-temurin-21 AS build
+
+WORKDIR /workspace
+
+COPY pom.xml pom.xml
+COPY src src
+RUN mvn -q -DskipTests package
+
+FROM eclipse-temurin:21-jre-ubi9-minimal
 
 WORKDIR /app
 
-ARG JAR_FILE=target/notification-service-0.0.1-SNAPSHOT.jar
-COPY ${JAR_FILE} app.jar
+COPY --from=build /workspace/target/*.jar app.jar
 
 EXPOSE 8085
 

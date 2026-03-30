@@ -15,6 +15,14 @@ public class LoanApplication {
 
     private Double amount;
 
+    private String loanType;
+
+    private Integer tenure;
+
+    private Double income;
+
+    private String employmentType;
+
     @Enumerated(EnumType.STRING)
     private ApplicationStatus status;
 
@@ -22,10 +30,15 @@ public class LoanApplication {
 
     private LocalDateTime updateAt;
 
-    public LoanApplication(Long id, Long userId, Double amount, ApplicationStatus status, LocalDateTime createdAt, LocalDateTime updateAt) {
+
+    public LoanApplication(Long id, Long userId, Double amount, String loanType, Integer tenure, Double income, String employmentType, ApplicationStatus status, LocalDateTime createdAt, LocalDateTime updateAt) {
         this.id = id;
         this.userId = userId;
         this.amount = amount;
+        this.loanType = loanType;
+        this.tenure = tenure;
+        this.income = income;
+        this.employmentType = employmentType;
         this.status = status;
         this.createdAt = createdAt;
         this.updateAt = updateAt;
@@ -93,5 +106,37 @@ public class LoanApplication {
 
     public void setUpdateAt(LocalDateTime updateAt) {
         this.updateAt = updateAt;
+    }
+
+    public String getLoanType() {
+        return loanType;
+    }
+
+    public void setLoanType(String loanType) {
+        this.loanType = loanType;
+    }
+
+    public Integer getTenure() {
+        return tenure;
+    }
+
+    public void setTenure(Integer tenure) {
+        this.tenure = tenure;
+    }
+
+    public Double getIncome() {
+        return income;
+    }
+
+    public void setIncome(Double income) {
+        this.income = income;
+    }
+
+    public String getEmploymentType() {
+        return employmentType;
+    }
+
+    public void setEmploymentType(String employmentType) {
+        this.employmentType = employmentType;
     }
 }
